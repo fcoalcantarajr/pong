@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+<script>
+var ballX = 75; //início da bola, X
+var ballY = 75; // início da bola, Y
+
+var speedX = 10;
+var speedY = 10;
+var canvas;
+var canvasContext;
+
+var paddleY = 250;
+
+const PADDLE_HEIGHT = 100;
+
+function updateMousePos(evt) {
+    var rect = canvas.getBoundingClientRect();
+    var root = document.documentElement;
+    var mouseY = evt.clientY - rect.top - root.scrollTop;
+    paddleY = mouseY - PADDLE_HEIGHT/2;
+}
+
+window.onload = function() {
+    var fps = 30;
+    // salvar o canvas e o contexto 2d
+    canvas = document.getElementById('gameCanvas');
+    canvasContext = canvas.getContext('2d');
+    setInterval(update, 1000/fps);
+    canvas.addEventListener('mousemove', updateMousePos) 
+}
+
+function update() {
+    move();
+    draw();
+}
+
+function move() {
+    if (ballX >= canvas.width || ballX <= 0) { // parede direita e esquerda
+        speedX *= -1;
+    }
+    if (ballY >= canvas.height || ballY <= 0) {
+        speedY *= -1;
+    }
+    ballX += speedX; //mover bola em X
+    ballY += speedY;
+}
+
+function colorRect (topLeftX, topLeftY, boxWidth, boxHeight, fillColor) {
+    // função dos retangulos
+    canvasContext.fillStyle = fillColor;
+    canvasContext.fillRect(topLeftX,topLeftY,boxWidth,boxHeight);
+}
+
+function colorCircle (centerX, centerY, radius, fillColor) {
+    // desenhar bola
+    canvasContext.fillStyle = fillColor; //cor
+    canvasContext.beginPath(); // novo shape
+    canvasContext.arc(centerX, centerY, radius, 0, Math.PI*2, true); // descrevendo o círculo
+    canvasContext.fill(); //pintar
+}
+
+function draw() {
+    // pintar o canvas
+    colorRect(0, 0, canvas.width, canvas.height, 'black');
+    // desenhar raquete
+    colorRect(10, paddleY, 10, 100, 'white'); 
+    colorCircle(ballX, ballY, 10, 'white');
+}
+
+</script>
+
+
+</body>
