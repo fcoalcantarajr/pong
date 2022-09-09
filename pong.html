@@ -17,8 +17,10 @@ var canvas;
 var canvasContext;
 
 var paddleY = 250;
+var paddle2Y = 250;
 
 const PADDLE_HEIGHT = 100;
+const PADDLE_THICKNESS = 10;
 
 function updateMousePos(evt) {
     var rect = canvas.getBoundingClientRect();
@@ -41,9 +43,22 @@ function update() {
     draw();
 }
 
+function ballReset () {
+    ballX = canvas.width/2;
+    ballY = canvas.height/2;
+}
+
 function move() {
-    if (ballX >= canvas.width || ballX <= 0) { // parede direita e esquerda
+    if (ballX >= canvas.width) { // parede direita
         speedX *= -1;
+    }
+    if (ballX <= 0) { // parede esquerda
+        if (ballY > paddleY && ballY < paddleY+PADDLE_HEIGHT) {
+            speedX *= -1;
+        }
+        else {
+            ballReset();
+        }
     }
     if (ballY >= canvas.height || ballY <= 0) {
         speedY *= -1;
@@ -69,8 +84,10 @@ function colorCircle (centerX, centerY, radius, fillColor) {
 function draw() {
     // pintar o canvas
     colorRect(0, 0, canvas.width, canvas.height, 'black');
-    // desenhar raquete
-    colorRect(10, paddleY, 10, 100, 'white'); 
+    // desenhar raquete usuário
+    colorRect(10, paddleY, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
+    // desenhar raquete computador
+    colorRect(canvas.width-2*PADDLE_THICKNESS, paddle2Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'blue');
     colorCircle(ballX, ballY, 10, 'white');
 }
 
