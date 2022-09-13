@@ -19,8 +19,19 @@ var canvasContext;
 var paddleY = 250;
 var paddle2Y = 250;
 
+// scores
+var scoreLeftPaddle = 0;
+var scoreRightPaddle = 0;
+
+// tela de vitória
+var showingWinScreen = false;
+
 const PADDLE_HEIGHT = 100;
 const PADDLE_THICKNESS = 10;
+const USER_PADDLE_DIST_FROM_EDGE = 10;
+const AI_PADDLE_DIST_FROM_EDGE = 20;
+const BALL_EFFECT = 0.15;
+const NPC_STEP = 8;
 
 function updateMousePos(evt) {
     var rect = canvas.getBoundingClientRect();
@@ -29,42 +40,93 @@ function updateMousePos(evt) {
     paddleY = mouseY - PADDLE_HEIGHT/2;
 }
 
+function newGame() {
+    showingWinScreen = false;
+}
+
 window.onload = function() {
     var fps = 30;
     // salvar o canvas e o contexto 2d
     canvas = document.getElementById('gameCanvas');
     canvasContext = canvas.getContext('2d');
     setInterval(update, 1000/fps);
-    canvas.addEventListener('mousemove', updateMousePos) 
+    canvas.addEventListener('mousemove', updateMousePos);
+    canvas.addEventListener('click', newGame);
 }
 
 function update() {
-    move();
-    draw();
+    if (showingWinScreen == false) {
+        move();
+        draw();
+    }
 }
 
 function ballReset () {
+    if (scoreLeftPaddle == 3 || scoreRightPaddle == 3) {
+        showingWinScreen = true;
+        colorRect(0, 0, canvas.width, canvas.height, 'black');
+        if (scoreLeftPaddle == 3) {
+            text("LEFT WINS",'white');
+        }
+        else if (scoreRightPaddle == 3) {
+            text("RIGHT WINS",'blue');
+        }
+        scoreLeftPaddle = 0;
+        scoreRightPaddle = 0;
+    }
     ballX = canvas.width/2;
     ballY = canvas.height/2;
+    speedX *= -1;
+}
+
+function npcMovement() {
+    if (paddle2Y<ballY-35 || paddle2Y>ballY+35) {
+        if (paddle2Y < ballY)
+            paddle2Y += NPC_STEP;
+        else
+            paddle2Y -= NPC_STEP;
+    }
 }
 
 function move() {
-    if (ballX >= canvas.width) { // parede direita
-        speedX *= -1;
-    }
-    if (ballX <= 0) { // parede esquerda
-        if (ballY > paddleY && ballY < paddleY+PADDLE_HEIGHT) {
+    npcMovement();
+    if (ballX >= canvas.width-(PADDLE_THICKNESS+AI_PADDLE_DIST_FROM_EDGE)) { // parede direita, usuário
+        if (ballY > paddle2Y && ballY < paddle2Y+PADDLE_HEIGHT) {
             speedX *= -1;
+            let centerPaddle2Y = paddle2Y + PADDLE_HEIGHT/2;
+            let ballDistFromPaddleCenter2Y = ballY - centerPaddle2Y;
+            speedY = ballDistFromPaddleCenter2Y*BALL_EFFECT;
         }
         else {
+            scoreLeftPaddle += 1;
             ballReset();
         }
     }
-    if (ballY >= canvas.height || ballY <= 0) {
+    if (ballX <= PADDLE_THICKNESS+USER_PADDLE_DIST_FROM_EDGE) { // parede esquerda
+        if (ballY > paddleY && ballY < paddleY+PADDLE_HEIGHT) {
+            speedX *= -1;
+            let centerPaddleY = paddleY + PADDLE_HEIGHT/2;
+            let ballDistFromPaddleCenterY = ballY - centerPaddleY;
+            speedY = ballDistFromPaddleCenterY*BALL_EFFECT;
+            speedY = ballDistFromPaddleCenterY*BALL_EFFECT;
+        }
+        else {
+            scoreRightPaddle += 1;
+            ballReset();
+        }
+    }
+    if (ballY >= canvas.height || ballY <= 0) { // paredes de cima e embaixo
         speedY *= -1;
     }
     ballX += speedX; //mover bola em X
-    ballY += speedY;
+    ballY += speedY; // mover bola em Y
+}
+
+function text(textWinner,textColor) {
+    canvasContext.font = "60px Courier New";
+    canvasContext.fillStyle = textColor; //cor
+    canvasContext.fillText(textWinner, 200, 100);
+    canvasContext.textAlign = 'center';
 }
 
 function colorRect (topLeftX, topLeftY, boxWidth, boxHeight, fillColor) {
@@ -85,10 +147,14 @@ function draw() {
     // pintar o canvas
     colorRect(0, 0, canvas.width, canvas.height, 'black');
     // desenhar raquete usuário
-    colorRect(10, paddleY, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
+    colorRect(USER_PADDLE_DIST_FROM_EDGE, paddleY, PADDLE_THICKNESS, PADDLE_HEIGHT, 'white');
     // desenhar raquete computador
-    colorRect(canvas.width-2*PADDLE_THICKNESS, paddle2Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'blue');
+    colorRect(canvas.width-AI_PADDLE_DIST_FROM_EDGE, paddle2Y, PADDLE_THICKNESS, PADDLE_HEIGHT, 'blue'); // raquete direita
     colorCircle(ballX, ballY, 10, 'white');
+    // score
+    canvasContext.font = "30px Courier New";
+    canvasContext.fillText(scoreLeftPaddle, 200, 100)
+    canvasContext.fillText(scoreRightPaddle, canvas.width-200, 100)
 }
 
 </script>
